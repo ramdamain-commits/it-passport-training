@@ -7,6 +7,7 @@
 GitHub Pagesで公開し、出先のスマホからアクセスできるようにした。
 
 #### 新機能
+- **PWA対応**: Service Workerで全アセットをキャッシュし、オフラインでも利用可能。ホーム画面に追加してアプリとして使える
 - **GitHub Pages デプロイ**: `https://ramdamain-commits.github.io/it-passport-training/` で常時アクセス可能
 - **レスポンシブ対応** (`@media max-width: 600px`):
   - モード選択ボタン: 横並び → 縦並びフル幅
