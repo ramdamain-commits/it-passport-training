@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ITパスポート 過去問トレーニング</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', 'Yu Gothic UI', sans-serif; background: #f5f7fa; color: #333; line-height: 1.7; }
+.container { max-width: 800px; margin: 0 auto; padding: 20px; }
+h1 { text-align: center; margin: 20px 0; color: #2c3e50; font-size: 1.5rem; }
+.controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; justify-content: center; }
+.controls select, .controls button { padding: 8px 16px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.95rem; }
+.controls button { background: #3498db; color: #fff; border: none; cursor: pointer; }
+.controls button:hover { background: #2980b9; }
+.btn-reset { background: #e74c3c !important; }
+.btn-reset:hover { background: #c0392b !important; }
+.stats { text-align: center; margin-bottom: 16px; font-size: 0.9rem; color: #666; }
+.question-card { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 24px; margin-bottom: 20px; }
+.question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.question-num { font-weight: bold; color: #2c3e50; }
+.category-badge { font-size: 0.8rem; padding: 2px 10px; border-radius: 12px; color: #fff; }
+.cat-strategy { background: #e74c3c; }
+.cat-management { background: #f39c12; }
+.cat-technology { background: #27ae60; }
+.question-body { margin-bottom: 16px; white-space: pre-wrap; word-wrap: break-word; }
+.question-image { margin-bottom: 16px; text-align: center; }
+.question-image img { max-width: 100%; border: 1px solid #e0e0e0; border-radius: 6px; }
+.choices { display: flex; flex-direction: column; gap: 8px; }
+.choice-btn { text-align: left; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; background: #fff; cursor: pointer; font-size: 0.95rem; transition: all 0.2s; }
+.choice-btn:hover { border-color: #3498db; background: #eaf4fd; }
+.choice-btn.correct { border-color: #27ae60; background: #e8f8f0; }
+.choice-btn.wrong { border-color: #e74c3c; background: #fdecea; }
+.choice-btn.reveal { border-color: #27ae60; background: #e8f8f0; }
+.choice-btn.selected { border-color: #3498db; background: #eaf4fd; }
+.choice-btn[disabled] { cursor: default; }
+.choice-btn[disabled]:hover { border-color: #e0e0e0; background: #fff; }
+.choice-btn.correct[disabled]:hover { border-color: #27ae60; background: #e8f8f0; }
+.choice-btn.wrong[disabled]:hover { border-color: #e74c3c; background: #fdecea; }
+.choice-btn.reveal[disabled]:hover { border-color: #27ae60; background: #e8f8f0; }
+.choice-btn.selected[disabled]:hover { border-color: #3498db; background: #eaf4fd; }
+.result-msg { margin-top: 12px; font-weight: bold; font-size: 1.1rem; }
+.result-msg.ok { color: #27ae60; }
+.result-msg.ng { color: #e74c3c; }
+.no-choices { color: #999; font-style: italic; margin-top: 8px; }
+.answer-reveal { margin-top: 12px; padding: 10px; background: #eaf4fd; border-radius: 6px; }
+.nav-buttons { display: flex; justify-content: space-between; margin-top: 10px; }
+.nav-buttons button { padding: 8px 20px; border: none; border-radius: 6px; background: #95a5a6; color: #fff; cursor: pointer; font-size: 0.9rem; }
+.nav-buttons button:hover { background: #7f8c8d; }
+.progress-bar { width: 100%; height: 6px; background: #e0e0e0; border-radius: 3px; margin-bottom: 16px; }
+.progress-fill { height: 100%; background: #27ae60; border-radius: 3px; transition: width 0.3s; }
+
+/* === モード選択画面 === */
+.mode-select { text-align: center; margin-top: 60px; }
+.mode-select p { color: #666; margin-bottom: 30px; }
+.mode-btn { display: inline-block; width: 260px; padding: 20px; margin: 10px; border: 2px solid #e0e0e0; border-radius: 12px; background: #fff; cursor: pointer; font-size: 1.1rem; font-weight: bold; color: #2c3e50; transition: all 0.2s; }
+.mode-btn:hover { border-color: #3498db; background: #eaf4fd; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.mode-btn .mode-icon { font-size: 2rem; display: block; margin-bottom: 8px; }
+.mode-btn .mode-desc { font-size: 0.8rem; font-weight: normal; color: #888; }
+
+/* === 模擬試験ヘッダー === */
+.mock-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+.mock-timer { font-size: 1.3rem; font-weight: bold; color: #2c3e50; font-variant-numeric: tabular-nums; }
+.mock-timer.warning { color: #e74c3c; }
+.mock-progress { font-size: 0.9rem; color: #666; }
+.mock-end-btn { padding: 8px 20px; border: none; border-radius: 6px; background: #e74c3c; color: #fff; cursor: pointer; font-size: 0.9rem; font-weight: bold; }
+.mock-end-btn:hover { background: #c0392b; }
+
+/* === 問題番号パネル === */
+.number-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin-bottom: 20px; }
+.num-cell { text-align: center; padding: 6px 0; border-radius: 4px; font-size: 0.75rem; cursor: pointer; background: #e0e0e0; color: #666; transition: all 0.15s; font-weight: bold; }
+.num-cell:hover { background: #bdc3c7; }
+.num-cell.answered { background: #3498db; color: #fff; }
+.num-cell.current { outline: 2px solid #2c3e50; outline-offset: -2px; }
+
+/* === 結果画面 === */
+.result-screen { text-align: center; }
+.result-verdict { font-size: 2rem; font-weight: bold; margin: 20px 0; padding: 20px; border-radius: 12px; }
+.result-verdict.pass { background: #e8f8f0; color: #27ae60; }
+.result-verdict.fail { background: #fdecea; color: #e74c3c; }
+.score-cards { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
+.score-card { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 16px 24px; min-width: 160px; }
+.score-card .sc-label { font-size: 0.8rem; color: #888; }
+.score-card .sc-value { font-size: 1.8rem; font-weight: bold; color: #2c3e50; }
+.score-card .sc-detail { font-size: 0.8rem; color: #999; }
+.score-card .sc-bar { height: 6px; background: #e0e0e0; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+.score-card .sc-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+.sc-bar-fill.pass { background: #27ae60; }
+.sc-bar-fill.fail { background: #e74c3c; }
+.result-note { font-size: 0.8rem; color: #999; margin: 16px 0; }
+.result-actions { display: flex; gap: 12px; justify-content: center; margin: 20px 0; }
+.result-actions button { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold; }
+.btn-retry { background: #3498db; color: #fff; }
+.btn-retry:hover { background: #2980b9; }
+.btn-back { background: #95a5a6; color: #fff; }
+.btn-back:hover { background: #7f8c8d; }
+
+/* === 結果の問題一覧 === */
+.result-questions { text-align: left; margin-top: 30px; }
+.rq-header { font-size: 1.1rem; font-weight: bold; margin-bottom: 12px; color: #2c3e50; }
+.rq-item { padding: 10px 14px; border-radius: 6px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.rq-item.rq-correct { background: #f0faf5; }
+.rq-item.rq-wrong { background: #fef0ee; }
+.rq-item.rq-unanswered { background: #f5f5f5; }
+.rq-label { font-size: 0.85rem; }
+.rq-mark { font-weight: bold; }
+.rq-detail { display: none; padding: 12px; margin: -4px 0 4px; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 0.85rem; white-space: pre-wrap; word-wrap: break-word; }
+.rq-detail.open { display: block; }
+.rq-detail img { max-width: 100%; margin: 8px 0; border: 1px solid #e0e0e0; border-radius: 4px; }
+
+.hidden { display: none !important; }
+
+/* === スマホ対応レスポンシブ === */
+@media (max-width: 600px) {
+  .container { padding: 12px; }
+  h1 { font-size: 1.2rem; margin: 12px 0; }
+
+  /* モード選択: 縦並びフル幅 */
+  .mode-select { margin-top: 30px; }
+  .mode-btn { display: block; width: 100%; margin: 10px 0; padding: 18px 16px; }
+
+  /* フィルタ: 年度フル幅 + 分野/種別2列 + ボタン3列 */
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .controls select:first-child { grid-column: 1 / -1; }
+  .controls select, .controls button { padding: 10px 12px; font-size: 0.9rem; min-height: 44px; }
+
+  /* 選択肢ボタン: タップしやすく */
+  .choice-btn { padding: 14px 12px; font-size: 0.95rem; min-height: 48px; }
+  .question-card { padding: 16px; }
+  .question-body { font-size: 0.9rem; }
+
+  /* ナビボタン: 大きめ */
+  .nav-buttons button { padding: 12px 16px; font-size: 0.95rem; min-height: 44px; flex: 1; }
+  .nav-buttons { gap: 8px; }
+
+  /* 模擬試験 番号グリッド: 10列→5列 */
+  .number-grid { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+  .num-cell { padding: 10px 0; font-size: 0.8rem; }
+
+  /* 模擬試験ヘッダー: sticky固定 */
+  .mock-header { position: sticky; top: 0; background: #f5f7fa; z-index: 10; padding: 8px 0; border-bottom: 1px solid #e0e0e0; }
+  .mock-timer { font-size: 1.1rem; }
+  .mock-end-btn { padding: 8px 14px; font-size: 0.8rem; }
+
+  /* 結果画面: スコアカード縦並び */
+  .score-cards { flex-direction: column; align-items: center; }
+  .score-card { width: 100%; min-width: unset; }
+  .result-verdict { font-size: 1.5rem; padding: 16px; }
+  .result-actions { flex-direction: column; }
+  .result-actions button { width: 100%; padding: 14px; }
+
+  /* 結果の問題一覧 */
+  .rq-item { padding: 12px 10px; }
+  .rq-label { font-size: 0.8rem; }
+  .rq-detail { font-size: 0.8rem; padding: 10px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>ITパスポート 過去問トレーニング</h1>
+
+  <!-- モード選択画面 -->
+  <div id="modeSelect" class="mode-select">
+    <p>モードを選択してください</p>
+    <button class="mode-btn" onclick="startStudyMode()">
+      <span class="mode-icon">📖</span>
+      学習モード
+      <span class="mode-desc">年度・分野を絞って自由に学習</span>
+    </button>
+    <button class="mode-btn" onclick="startMockExam()">
+      <span class="mode-icon">📝</span>
+      模擬試験
+      <span class="mode-desc">100問 / 120分 / 合格判定あり</span>
+    </button>
+  </div>
+
+  <!-- 学習モード -->
+  <div id="studyMode" class="hidden">
+    <div class="controls">
+      <select id="examFilter"><option value="all">全年度</option></select>
+      <select id="catFilter">
+        <option value="all">全分野</option>
+        <option value="ストラテジ系">ストラテジ系</option>
+        <option value="マネジメント系">マネジメント系</option>
+        <option value="テクノロジ系">テクノロジ系</option>
+      </select>
+      <select id="choiceFilter">
+        <option value="all">全問題</option>
+        <option value="with">選択肢あり</option>
+      </select>
+      <button onclick="shuffle()">シャッフル</button>
+      <button class="btn-reset" onclick="resetAll()">リセット</button>
+      <button class="btn-back" onclick="backToSelect()" style="background:#95a5a6;color:#fff;border:none;cursor:pointer">戻る</button>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="stats" id="stats"></div>
+    <div id="questionArea"></div>
+    <div class="nav-buttons">
+      <button onclick="prevQ()">← 前へ</button>
+      <button onclick="nextQ()">次へ →</button>
+    </div>
+  </div>
+
+  <!-- 模擬試験モード -->
+  <div id="mockMode" class="hidden">
+    <div class="mock-header">
+      <div class="mock-timer" id="mockTimer">残り 120:00</div>
+      <div class="mock-progress" id="mockProgress">回答: 0 / 100</div>
+      <button class="mock-end-btn" onclick="endMockExam()">試験終了</button>
+    </div>
+    <div class="number-grid" id="numberGrid"></div>
+    <div class="progress-bar"><div class="progress-fill" id="mockProgressBar"></div></div>
+    <div id="mockQuestionArea"></div>
+    <div class="nav-buttons">
+      <button onclick="mockPrev()">← 前へ</button>
+      <button onclick="mockNext()">次へ →</button>
+    </div>
+  </div>
+
+  <!-- 結果画面 -->
+  <div id="resultScreen" class="hidden result-screen"></div>
+</div>
+
+<script src="data.js"></script>
+<script>
+// === 共通 ===
+let mode = "select"; // "select" | "study" | "mock" | "result"
+
+function showScreen(name) {
+  mode = name;
+  document.getElementById("modeSelect").classList.toggle("hidden", name !== "select");
+  document.getElementById("studyMode").classList.toggle("hidden", name !== "study");
+  document.getElementById("mockMode").classList.toggle("hidden", name !== "mock");
+  document.getElementById("resultScreen").classList.toggle("hidden", name !== "result");
+}
+
+function backToSelect() { showScreen("select"); if (mockTimerId) { clearInterval(mockTimerId); mockTimerId = null; } }
+
+function getCardClass(cat) {
+  if (cat.includes("ストラテジ")) return "cat-strategy";
+  if (cat.includes("マネジメント")) return "cat-management";
+  return "cat-technology";
+}
+function hasChoices(q) { return q.choices && Object.keys(q.choices).length >= 2; }
+function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// === 学習モード（既存） ===
+let filtered = [...DATA];
+let currentIdx = 0;
+let answered = {};
+let correctCount = 0;
+let totalAnswered = 0;
+
+function startStudyMode() { showScreen("study"); applyFilter(); }
+
+function render() {
+  if (filtered.length === 0) {
+    document.getElementById("questionArea").innerHTML = "<p style='text-align:center;color:#999'>該当する問題がありません</p>";
+    document.getElementById("stats").textContent = "";
+    document.getElementById("progressFill").style.width = "0%";
+    return;
+  }
+  const q = filtered[currentIdx];
+  const key = q.exam + "-" + q.number;
+  const ans = answered[key];
+  let html = `<div class="question-card">
+    <div class="question-header">
+      <span class="question-num">${q.examLabel} 問${q.number}</span>
+      <span class="category-badge ${getCardClass(q.category)}">${q.category}</span>
+    </div>
+    <div class="question-body">${escapeHtml(q.body)}</div>
+    ${q.image ? `<div class="question-image"><img src="${q.image}" alt="問${q.number}の図"></div>` : ''}`;
+  if (hasChoices(q)) {
+    html += `<div class="choices">`;
+    for (const [label, text] of Object.entries(q.choices)) {
+      let cls = "";
+      if (ans) {
+        if (label === q.answer) cls = ans === label ? "correct" : "reveal";
+        else if (label === ans) cls = "wrong";
+      }
+      html += `<button class="choice-btn ${cls}" ${ans ? "disabled" : ""} onclick="choose('${key}','${label}')">${label}　${escapeHtml(text)}</button>`;
+    }
+    html += `</div>`;
+  } else {
+    html += `<p class="no-choices">（選択肢は未抽出です。正解: ${q.answer}）</p>`;
+  }
+  if (ans) {
+    const ok = ans === q.answer;
+    html += `<div class="result-msg ${ok ? 'ok' : 'ng'}">${ok ? '⭕ 正解！' : '❌ 不正解（正解: ' + q.answer + '）'}</div>`;
+  }
+  html += `</div>`;
+  document.getElementById("questionArea").innerHTML = html;
+  document.getElementById("stats").textContent = `${currentIdx + 1} / ${filtered.length} 問　正解: ${correctCount} / ${totalAnswered}`;
+  document.getElementById("progressFill").style.width = ((currentIdx + 1) / filtered.length * 100) + "%";
+}
+
+function choose(key, label) {
+  if (answered[key]) return;
+  answered[key] = label;
+  totalAnswered++;
+  if (label === filtered[currentIdx].answer) correctCount++;
+  render();
+}
+
+function nextQ() { if (currentIdx < filtered.length - 1) { currentIdx++; render(); window.scrollTo(0,0); } }
+function prevQ() { if (currentIdx > 0) { currentIdx--; render(); window.scrollTo(0,0); } }
+function shuffle() { filtered.sort(() => Math.random() - 0.5); currentIdx = 0; render(); window.scrollTo(0,0); }
+function resetAll() { answered = {}; correctCount = 0; totalAnswered = 0; currentIdx = 0; applyFilter(); }
+
+function applyFilter() {
+  const exam = document.getElementById("examFilter").value;
+  const cat = document.getElementById("catFilter").value;
+  const choiceMode = document.getElementById("choiceFilter").value;
+  filtered = DATA.filter(q =>
+    (exam === "all" || q.exam === exam) &&
+    (cat === "all" || q.category === cat) &&
+    (choiceMode === "all" || hasChoices(q))
+  );
+  currentIdx = 0;
+  render();
+}
+
+// 年度フィルタ生成
+const exams = [...new Map(DATA.map(q => [q.exam, q.examLabel])).entries()];
+const sel = document.getElementById("examFilter");
+exams.forEach(([val, label]) => {
+  const o = document.createElement("option");
+  o.value = val; o.textContent = label; sel.appendChild(o);
+});
+document.getElementById("examFilter").addEventListener("change", applyFilter);
+document.getElementById("catFilter").addEventListener("change", applyFilter);
+document.getElementById("choiceFilter").addEventListener("change", applyFilter);
+
+// === 模擬試験モード ===
+let mockQuestions = [];
+let mockAnswers = {};
+let mockIdx = 0;
+let mockTimerId = null;
+let mockRemaining = 120 * 60; // 秒
+
+function pickMockQuestions() {
+  const byCat = { "ストラテジ系": [], "マネジメント系": [], "テクノロジ系": [] };
+  DATA.filter(hasChoices).forEach(q => { if (byCat[q.category]) byCat[q.category].push(q); });
+
+  const needed = { "ストラテジ系": 35, "マネジメント系": 20, "テクノロジ系": 45 };
+  const result = [];
+
+  for (const [cat, count] of Object.entries(needed)) {
+    const pool = byCat[cat].slice();
+    // シャッフル
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    // 類似問題回避: 同じ問題番号は最大2年度まで
+    const numCount = {};
+    const picked = [];
+    for (const q of pool) {
+      if (picked.length >= count) break;
+      const n = q.number;
+      numCount[n] = (numCount[n] || 0);
+      if (numCount[n] >= 2) continue;
+      numCount[n]++;
+      picked.push(q);
+    }
+    result.push(...picked);
+  }
+
+  // 全体シャッフル
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+function startMockExam() {
+  mockQuestions = pickMockQuestions();
+  mockAnswers = {};
+  mockIdx = 0;
+  mockRemaining = 120 * 60;
+  showScreen("mock");
+  renderNumberGrid();
+  renderMockQuestion();
+  updateMockTimer();
+  if (mockTimerId) clearInterval(mockTimerId);
+  mockTimerId = setInterval(() => {
+    mockRemaining--;
+    updateMockTimer();
+    if (mockRemaining <= 0) {
+      clearInterval(mockTimerId);
+      mockTimerId = null;
+      endMockExam(true);
+    }
+  }, 1000);
+}
+
+function updateMockTimer() {
+  const m = Math.floor(mockRemaining / 60);
+  const s = mockRemaining % 60;
+  const el = document.getElementById("mockTimer");
+  el.textContent = `残り ${m}:${String(s).padStart(2, '0')}`;
+  el.classList.toggle("warning", mockRemaining < 300);
+}
+
+function renderNumberGrid() {
+  let html = "";
+  for (let i = 0; i < mockQuestions.length; i++) {
+    const key = mockQuestions[i].exam + "-" + mockQuestions[i].number;
+    const cls = [
+      "num-cell",
+      mockAnswers[key] ? "answered" : "",
+      i === mockIdx ? "current" : ""
+    ].join(" ");
+    html += `<div class="${cls}" onclick="mockJump(${i})">${i + 1}</div>`;
+  }
+  document.getElementById("numberGrid").innerHTML = html;
+  const answeredCount = Object.keys(mockAnswers).length;
+  document.getElementById("mockProgress").textContent = `回答: ${answeredCount} / ${mockQuestions.length}`;
+  document.getElementById("mockProgressBar").style.width = (answeredCount / mockQuestions.length * 100) + "%";
+}
+
+function renderMockQuestion() {
+  const q = mockQuestions[mockIdx];
+  const key = q.exam + "-" + q.number;
+  const ans = mockAnswers[key];
+  let html = `<div class="question-card">
+    <div class="question-header">
+      <span class="question-num">第${mockIdx + 1}問</span>
+      <span class="category-badge ${getCardClass(q.category)}">${q.category}</span>
+    </div>
+    <div class="question-body">${escapeHtml(q.body)}</div>
+    ${q.image ? `<div class="question-image"><img src="${q.image}" alt="図"></div>` : ''}
+    <div class="choices">`;
+  for (const [label, text] of Object.entries(q.choices)) {
+    const sel = ans === label ? "selected" : "";
+    html += `<button class="choice-btn ${sel}" onclick="mockChoose('${key}','${label}')">${label}　${escapeHtml(text)}</button>`;
+  }
+  html += `</div></div>`;
+  document.getElementById("mockQuestionArea").innerHTML = html;
+  renderNumberGrid();
+}
+
+function mockChoose(key, label) {
+  mockAnswers[key] = label;
+  renderMockQuestion();
+}
+
+function mockNext() { if (mockIdx < mockQuestions.length - 1) { mockIdx++; renderMockQuestion(); window.scrollTo(0,0); } }
+function mockPrev() { if (mockIdx > 0) { mockIdx--; renderMockQuestion(); window.scrollTo(0,0); } }
+function mockJump(i) { mockIdx = i; renderMockQuestion(); window.scrollTo(0,0); }
+
+function endMockExam(timeUp) {
+  const unanswered = mockQuestions.length - Object.keys(mockAnswers).length;
+  if (!timeUp && unanswered > 0) {
+    if (!confirm(`未回答が ${unanswered} 問あります。試験を終了しますか？\n未回答は不正解として扱われます。`)) return;
+  }
+  if (mockTimerId) { clearInterval(mockTimerId); mockTimerId = null; }
+  showMockResult();
+}
+
+function showMockResult() {
+  showScreen("result");
+
+  // 集計
+  const cats = { "ストラテジ系": { total: 0, correct: 0 }, "マネジメント系": { total: 0, correct: 0 }, "テクノロジ系": { total: 0, correct: 0 } };
+  let totalCorrect = 0;
+  const details = [];
+
+  mockQuestions.forEach((q, i) => {
+    const key = q.exam + "-" + q.number;
+    const userAns = mockAnswers[key] || null;
+    const isCorrect = userAns === q.answer;
+    if (isCorrect) totalCorrect++;
+    cats[q.category].total++;
+    if (isCorrect) cats[q.category].correct++;
+    details.push({ idx: i + 1, q, userAns, isCorrect });
+  });
+
+  const totalPct = Math.round(totalCorrect / mockQuestions.length * 100);
+  const passTotal = totalPct >= 60;
+  const passCats = Object.values(cats).every(c => c.total === 0 || (c.correct / c.total * 100) >= 30);
+  const passed = passTotal && passCats;
+
+  let html = `<div class="result-verdict ${passed ? 'pass' : 'fail'}">${passed ? '合格' : '不合格'}</div>`;
+
+  // 総合スコア
+  html += `<div class="score-cards">
+    <div class="score-card">
+      <div class="sc-label">総合</div>
+      <div class="sc-value">${totalCorrect}<span style="font-size:1rem;color:#999">/${mockQuestions.length}</span></div>
+      <div class="sc-detail">${totalPct}%（基準: 60%以上）</div>
+      <div class="sc-bar"><div class="sc-bar-fill ${passTotal ? 'pass' : 'fail'}" style="width:${totalPct}%"></div></div>
+    </div>`;
+
+  // 分野別
+  const catLabels = { "ストラテジ系": "ストラテジ", "マネジメント系": "マネジメント", "テクノロジ系": "テクノロジ" };
+  for (const [cat, data] of Object.entries(cats)) {
+    const pct = data.total > 0 ? Math.round(data.correct / data.total * 100) : 0;
+    const p = pct >= 30;
+    html += `<div class="score-card">
+      <div class="sc-label">${catLabels[cat]}</div>
+      <div class="sc-value">${data.correct}<span style="font-size:1rem;color:#999">/${data.total}</span></div>
+      <div class="sc-detail">${pct}%（基準: 30%以上）</div>
+      <div class="sc-bar"><div class="sc-bar-fill ${p ? 'pass' : 'fail'}" style="width:${pct}%"></div></div>
+    </div>`;
+  }
+  html += `</div>`;
+
+  html += `<div class="result-note">※ 実際の試験はIRT（項目応答理論）で採点されるため、正答数＝得点ではありません。本判定は正答率ベースの簡易判定です。</div>`;
+
+  html += `<div class="result-actions">
+    <button class="btn-retry" onclick="startMockExam()">もう一度</button>
+    <button class="btn-back" onclick="backToSelect()">トップへ</button>
+  </div>`;
+
+  // 問題一覧
+  html += `<div class="result-questions"><div class="rq-header">問題一覧（クリックで詳細表示）</div>`;
+  details.forEach(d => {
+    const statusCls = !d.userAns ? 'rq-unanswered' : d.isCorrect ? 'rq-correct' : 'rq-wrong';
+    const mark = !d.userAns ? '未回答' : d.isCorrect ? '⭕' : '❌';
+    const detailId = `rq-detail-${d.idx}`;
+    html += `<div class="rq-item ${statusCls}" onclick="document.getElementById('${detailId}').classList.toggle('open')">
+      <span class="rq-label">第${d.idx}問 — ${d.q.examLabel} 問${d.q.number}（${d.q.category}）</span>
+      <span class="rq-mark">${mark}</span>
+    </div>
+    <div class="rq-detail" id="${detailId}">
+      ${escapeHtml(d.q.body)}
+      ${d.q.image ? `<img src="${d.q.image}" alt="図">` : ''}
+      ${Object.entries(d.q.choices).map(([l, t]) => {
+        let prefix = '';
+        if (l === d.q.answer) prefix = '✅ ';
+        else if (l === d.userAns) prefix = '❌ ';
+        return `\n${prefix}${l}　${escapeHtml(t)}`;
+      }).join('')}
+      ${!d.userAns ? '\n\n（未回答）正解: ' + d.q.answer : !d.isCorrect ? '\n\nあなたの回答: ' + d.userAns + ' → 正解: ' + d.q.answer : ''}
+    </div>`;
+  });
+  html += `</div>`;
+
+  document.getElementById("resultScreen").innerHTML = html;
+}
+
+// === キーボードショートカット ===
+document.addEventListener("keydown", e => {
+  if (mode === "study") {
+    if (e.key === "ArrowRight" || e.key === "n") nextQ();
+    if (e.key === "ArrowLeft" || e.key === "p") prevQ();
+    const q = filtered[currentIdx];
+    if (q) {
+      const key = q.exam + "-" + q.number;
+      if (e.key === "1") choose(key, "ア");
+      if (e.key === "2") choose(key, "イ");
+      if (e.key === "3") choose(key, "ウ");
+      if (e.key === "4") choose(key, "エ");
+    }
+  } else if (mode === "mock") {
+    if (e.key === "ArrowRight" || e.key === "n") mockNext();
+    if (e.key === "ArrowLeft" || e.key === "p") mockPrev();
+    const q = mockQuestions[mockIdx];
+    if (q) {
+      const key = q.exam + "-" + q.number;
+      if (e.key === "1") mockChoose(key, "ア");
+      if (e.key === "2") mockChoose(key, "イ");
+      if (e.key === "3") mockChoose(key, "ウ");
+      if (e.key === "4") mockChoose(key, "エ");
+    }
+  }
+});
+</script>
+</body>
+</html>
