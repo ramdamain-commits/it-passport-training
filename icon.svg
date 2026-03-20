@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#3498db"/>
+  <text x="256" y="200" text-anchor="middle" font-family="sans-serif" font-size="120" font-weight="bold" fill="#fff">IT</text>
+  <text x="256" y="340" text-anchor="middle" font-family="sans-serif" font-size="60" font-weight="bold" fill="#fff">パスポート</text>
+  <text x="256" y="420" text-anchor="middle" font-family="sans-serif" font-size="48" fill="rgba(255,255,255,0.8)">過去問</text>
+</svg>

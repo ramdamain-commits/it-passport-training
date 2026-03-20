@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#3498db">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <title>ITパスポート 過去問トレーニング</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -569,5 +572,6 @@ document.addEventListener("keydown", e => {
   }
 });
 </script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');</script>
 </body>
 </html>
