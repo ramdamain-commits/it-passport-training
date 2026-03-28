@@ -6,6 +6,13 @@
 <meta name="theme-color" content="#3498db">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<!-- Apple デバイス対応 -->
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="IT過去問">
+<!-- SEO -->
+<meta name="description" content="ITパスポート試験 8年分800問の過去問学習ツール。オフライン対応PWA。">
 <title>ITパスポート 過去問トレーニング</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -157,11 +164,27 @@ h1 { text-align: center; margin: 20px 0; color: #2c3e50; font-size: 1.5rem; }
   .rq-label { font-size: 0.8rem; }
   .rq-detail { font-size: 0.8rem; padding: 10px; }
 }
+/* === PWA インストール案内バナー === */
+.install-banner { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #eaf4fd; border: 1px solid #3498db; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem; }
+.install-banner.hidden { display: none; }
+.install-banner p { flex: 1; margin: 0; color: #2c3e50; }
+.install-banner button { padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; }
+#installBtn { background: #3498db; color: #fff; }
+#installBtn:hover { background: #2980b9; }
+.install-dismiss { background: transparent; color: #999; font-size: 1.1rem; padding: 4px 8px; }
+.install-dismiss:hover { color: #666; }
 </style>
 </head>
 <body>
 <div class="container">
   <h1>ITパスポート 過去問トレーニング</h1>
+
+  <!-- PWA インストール案内（対応ブラウザでのみ表示） -->
+  <div id="installBanner" class="install-banner hidden">
+    <p>📱 ホーム画面に追加してオフラインでも使えます</p>
+    <button id="installBtn" onclick="installPWA()">インストール</button>
+    <button class="install-dismiss" onclick="dismissInstall()">✕</button>
+  </div>
 
   <!-- モード選択画面 -->
   <div id="modeSelect" class="mode-select">
@@ -255,7 +278,75 @@ let answered = {};
 let correctCount = 0;
 let totalAnswered = 0;
 
-function startStudyMode() { showScreen("study"); applyFilter(); }
+// === localStorage キー ===
+const STORAGE_KEY = 'it-passport-study';
+
+/**
+ * 学習進捗を localStorage に保存する
+ * 回答データ・正解数・回答済み数・現在のインデックス・フィルター状態を保存
+ */
+function saveStudyProgress() {
+  const progress = {
+    answered,
+    correctCount,
+    totalAnswered,
+    currentIdx,
+    filter: {
+      exam: document.getElementById("examFilter").value,
+      cat:  document.getElementById("catFilter").value,
+      choice: document.getElementById("choiceFilter").value,
+    },
+    timestamp: Date.now(),
+  };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+  } catch (e) {
+    // localStorage が使用不可の場合（プライベートブラウズ容量超過等）は無視
+  }
+}
+
+/**
+ * localStorage から学習進捗を復元する
+ * フィルター状態は select 要素に反映するが、applyFilter() の呼び出しは呼び出し元に委ねる
+ */
+function loadStudyProgress() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (!saved) return false;
+  try {
+    const p = JSON.parse(saved);
+    answered      = p.answered      || {};
+    correctCount  = p.correctCount  || 0;
+    totalAnswered = p.totalAnswered  || 0;
+    currentIdx    = p.currentIdx    || 0;
+    // フィルター状態を select 要素へ反映
+    if (p.filter) {
+      const examEl   = document.getElementById("examFilter");
+      const catEl    = document.getElementById("catFilter");
+      const choiceEl = document.getElementById("choiceFilter");
+      if (p.filter.exam   && examEl.querySelector(`option[value="${p.filter.exam}"]`))   examEl.value   = p.filter.exam;
+      if (p.filter.cat)    catEl.value    = p.filter.cat;
+      if (p.filter.choice) choiceEl.value = p.filter.choice;
+    }
+    return true;
+  } catch (e) {
+    // JSON 破損等は無視して初期状態のまま続行
+    return false;
+  }
+}
+
+/**
+ * localStorage の学習進捗を消去する
+ * resetAll() から呼び出す
+ */
+function clearStudyProgress() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+function startStudyMode() {
+  showScreen("study");
+  loadStudyProgress(); // 保存済みの進捗を復元してからフィルターを適用
+  applyFilter();
+}
 
 function render() {
   if (filtered.length === 0) {
@@ -304,12 +395,13 @@ function choose(key, label) {
   totalAnswered++;
   if (label === filtered[currentIdx].answer) correctCount++;
   render();
+  saveStudyProgress(); // 回答のたびに進捗を保存
 }
 
 function nextQ() { if (currentIdx < filtered.length - 1) { currentIdx++; render(); window.scrollTo(0,0); } }
 function prevQ() { if (currentIdx > 0) { currentIdx--; render(); window.scrollTo(0,0); } }
 function shuffle() { filtered.sort(() => Math.random() - 0.5); currentIdx = 0; render(); window.scrollTo(0,0); }
-function resetAll() { answered = {}; correctCount = 0; totalAnswered = 0; currentIdx = 0; applyFilter(); }
+function resetAll() { answered = {}; correctCount = 0; totalAnswered = 0; currentIdx = 0; clearStudyProgress(); applyFilter(); }
 
 function applyFilter() {
   const exam = document.getElementById("examFilter").value;
@@ -322,6 +414,7 @@ function applyFilter() {
   );
   currentIdx = 0;
   render();
+  saveStudyProgress(); // フィルター変更時もフィルター状態を保存
 }
 
 // 年度フィルタ生成
@@ -573,5 +666,38 @@ document.addEventListener("keydown", e => {
 });
 </script>
 <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');</script>
+<script>
+/* PWA インストール案内 */
+(function() {
+  var deferredPrompt = null;
+  var banner = document.getElementById('installBanner');
+
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (banner && !localStorage.getItem('pwa-install-dismissed')) {
+      banner.classList.remove('hidden');
+    }
+  });
+
+  window.installPWA = function() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function() {
+      deferredPrompt = null;
+      if (banner) banner.classList.add('hidden');
+    });
+  };
+
+  window.dismissInstall = function() {
+    if (banner) banner.classList.add('hidden');
+    localStorage.setItem('pwa-install-dismissed', '1');
+  };
+
+  window.addEventListener('appinstalled', function() {
+    if (banner) banner.classList.add('hidden');
+  });
+})();
+</script>
 </body>
 </html>
