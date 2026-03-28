@@ -167,6 +167,58 @@ h1 { text-align: center; margin: 20px 0; color: #2c3e50; font-size: 1.5rem; }
 /* === PWA インストール案内バナー === */
 .install-banner { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #eaf4fd; border: 1px solid #3498db; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem; }
 .install-banner.hidden { display: none; }
+
+/* === 成績画面 === */
+.stats-screen { max-width: 800px; }
+.stats-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.stats-header h2 { font-size: 1.2rem; color: #2c3e50; }
+.stats-back { padding: 8px 16px; border: none; border-radius: 6px; background: #95a5a6; color: #fff; cursor: pointer; font-size: 0.9rem; }
+.stats-back:hover { background: #7f8c8d; }
+
+/* 概要カード */
+.stats-summary { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+.stats-summary .score-card { flex: 1; min-width: 140px; }
+
+/* スコア推移グラフ */
+.chart-section { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 24px; }
+.chart-title { font-size: 0.95rem; font-weight: bold; color: #2c3e50; margin-bottom: 16px; }
+.chart-area { position: relative; height: 200px; display: flex; align-items: flex-end; gap: 0; border-bottom: 2px solid #e0e0e0; border-left: 2px solid #e0e0e0; padding-left: 2px; }
+.chart-y-labels { position: absolute; left: -32px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: space-between; font-size: 0.7rem; color: #999; }
+.chart-pass-line { position: absolute; bottom: 60%; left: 0; right: 0; border-top: 2px dashed #27ae60; z-index: 1; }
+.chart-pass-label { position: absolute; right: 4px; top: -14px; font-size: 0.65rem; color: #27ae60; background: #fff; padding: 0 4px; }
+.chart-bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; min-width: 0; }
+.chart-bar { width: 70%; max-width: 48px; border-radius: 4px 4px 0 0; transition: height 0.3s; cursor: default; position: relative; }
+.chart-bar.pass { background: #3498db; }
+.chart-bar.fail { background: #e74c3c; }
+.chart-bar-label { font-size: 0.65rem; color: #999; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; text-align: center; }
+.chart-bar:hover::after { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; white-space: nowrap; z-index: 10; }
+.chart-empty { display: flex; align-items: center; justify-content: center; height: 200px; color: #999; font-size: 0.9rem; }
+
+/* カテゴリ別弱点 */
+.weakness-section { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 24px; }
+.weakness-cat { margin-bottom: 16px; }
+.weakness-cat:last-child { margin-bottom: 0; }
+.weakness-label { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; margin-bottom: 6px; }
+.weakness-label .cat-name { font-weight: bold; color: #2c3e50; }
+.weakness-label .cat-pct { font-weight: bold; }
+.weakness-bar { height: 10px; background: #e0e0e0; border-radius: 5px; overflow: hidden; }
+.weakness-bar-fill { height: 100%; border-radius: 5px; transition: width 0.5s; }
+
+/* 苦手問題リスト */
+.weak-questions { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 24px; }
+.wq-item { padding: 10px 14px; border-radius: 6px; margin-bottom: 4px; background: #fef0ee; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
+.wq-item .wq-label { color: #333; }
+.wq-item .wq-count { color: #e74c3c; font-weight: bold; font-size: 0.8rem; }
+.stats-clear { display: block; margin: 20px auto 0; padding: 10px 20px; border: 1px solid #e74c3c; border-radius: 6px; background: transparent; color: #e74c3c; cursor: pointer; font-size: 0.85rem; }
+.stats-clear:hover { background: #fdecea; }
+
+/* 成績画面レスポンシブ */
+@media (max-width: 600px) {
+  .stats-summary { flex-direction: column; }
+  .stats-summary .score-card { min-width: unset; }
+  .chart-area { height: 160px; }
+  .chart-y-labels { left: -28px; }
+}
 .install-banner p { flex: 1; margin: 0; color: #2c3e50; }
 .install-banner button { padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; }
 #installBtn { background: #3498db; color: #fff; }
@@ -198,6 +250,11 @@ h1 { text-align: center; margin: 20px 0; color: #2c3e50; font-size: 1.5rem; }
       <span class="mode-icon">📝</span>
       模擬試験
       <span class="mode-desc">100問 / 120分 / 合格判定あり</span>
+    </button>
+    <button class="mode-btn" onclick="showStats()">
+      <span class="mode-icon">📊</span>
+      成績
+      <span class="mode-desc">推移グラフ・弱点分析</span>
     </button>
   </div>
 
@@ -246,6 +303,9 @@ h1 { text-align: center; margin: 20px 0; color: #2c3e50; font-size: 1.5rem; }
 
   <!-- 結果画面 -->
   <div id="resultScreen" class="hidden result-screen"></div>
+
+  <!-- 成績画面 -->
+  <div id="statsScreen" class="hidden stats-screen"></div>
 </div>
 
 <script src="data.js"></script>
@@ -259,6 +319,7 @@ function showScreen(name) {
   document.getElementById("studyMode").classList.toggle("hidden", name !== "study");
   document.getElementById("mockMode").classList.toggle("hidden", name !== "mock");
   document.getElementById("resultScreen").classList.toggle("hidden", name !== "result");
+  document.getElementById("statsScreen").classList.toggle("hidden", name !== "stats");
 }
 
 function backToSelect() { showScreen("select"); if (mockTimerId) { clearInterval(mockTimerId); mockTimerId = null; } }
@@ -636,6 +697,153 @@ function showMockResult() {
   html += `</div>`;
 
   document.getElementById("resultScreen").innerHTML = html;
+
+  // 模擬試験の結果を履歴に保存
+  saveMockHistory(totalCorrect, mockQuestions.length, cats);
+}
+
+// === 成績履歴 ===
+const HISTORY_KEY = 'it-passport-history';
+
+function loadHistory() {
+  try {
+    var data = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+    if (!Array.isArray(data)) return [];
+    return data.filter(function(h) {
+      return typeof h.pct === 'number' && typeof h.correct === 'number' && typeof h.total === 'number';
+    });
+  } catch (e) { return []; }
+}
+
+function saveMockHistory(correct, total, cats) {
+  var history = loadHistory();
+  history.push({
+    date: new Date().toISOString(),
+    correct: correct,
+    total: total,
+    pct: Math.round(correct / total * 100),
+    cats: {
+      "ストラテジ系":   { correct: cats["ストラテジ系"].correct,   total: cats["ストラテジ系"].total },
+      "マネジメント系": { correct: cats["マネジメント系"].correct, total: cats["マネジメント系"].total },
+      "テクノロジ系":   { correct: cats["テクノロジ系"].correct,   total: cats["テクノロジ系"].total },
+    },
+    // 間違えた問題を記録
+    wrong: mockQuestions.filter(function(q) {
+      var key = q.exam + "-" + q.number;
+      var userAns = mockAnswers[key];
+      return userAns && userAns !== q.answer;
+    }).map(function(q) {
+      return { exam: q.exam, examLabel: q.examLabel, number: q.number, category: q.category };
+    }),
+  });
+  // 最大30件保持
+  if (history.length > 30) history = history.slice(-30);
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  } catch (e) { console.warn('成績の保存に失敗しました:', e); }
+}
+
+function showStats() {
+  showScreen("stats");
+  var history = loadHistory();
+  var el = document.getElementById("statsScreen");
+
+  var html = '<div class="stats-header"><h2>成績・弱点分析</h2><button class="stats-back" onclick="backToSelect()">戻る</button></div>';
+
+  if (history.length === 0) {
+    html += '<div class="chart-section"><div class="chart-empty">模擬試験を受けると成績が記録されます</div></div>';
+    el.innerHTML = html;
+    return;
+  }
+
+  // === 概要カード ===
+  var latest = history[history.length - 1];
+  var best = Math.max.apply(null, history.map(function(h) { return h.pct; }));
+  var avg = Math.round(history.reduce(function(s, h) { return s + h.pct; }, 0) / history.length);
+  var passCount = history.filter(function(h) { return h.pct >= 60; }).length;
+
+  html += '<div class="stats-summary">';
+  html += '<div class="score-card"><div class="sc-label">受験回数</div><div class="sc-value">' + history.length + '<span style="font-size:1rem;color:#999">回</span></div></div>';
+  html += '<div class="score-card"><div class="sc-label">最新スコア</div><div class="sc-value">' + latest.pct + '<span style="font-size:1rem;color:#999">%</span></div><div class="sc-bar"><div class="sc-bar-fill ' + (latest.pct >= 60 ? 'pass' : 'fail') + '" style="width:' + latest.pct + '%"></div></div></div>';
+  html += '<div class="score-card"><div class="sc-label">最高スコア</div><div class="sc-value">' + best + '<span style="font-size:1rem;color:#999">%</span></div></div>';
+  html += '<div class="score-card"><div class="sc-label">平均 / 合格率</div><div class="sc-value">' + avg + '<span style="font-size:1rem;color:#999">%</span></div><div class="sc-detail">合格: ' + passCount + ' / ' + history.length + ' 回</div></div>';
+  html += '</div>';
+
+  // === スコア推移グラフ ===
+  html += '<div class="chart-section"><div class="chart-title">スコア推移</div>';
+  // 直近15回を表示
+  var recent = history.slice(-15);
+  html += '<div style="position:relative;padding-left:36px">';
+  html += '<div class="chart-y-labels"><span>100</span><span>80</span><span>60</span><span>40</span><span>20</span><span>0</span></div>';
+  html += '<div class="chart-area">';
+  html += '<div class="chart-pass-line"><span class="chart-pass-label">合格 60%</span></div>';
+  recent.forEach(function(h) {
+    var d = new Date(h.date);
+    var label = (d.getMonth() + 1) + '/' + d.getDate();
+    var barH = h.pct; // percentage maps directly to height %
+    var cls = h.pct >= 60 ? 'pass' : 'fail';
+    var tooltip = h.pct + '% (' + h.correct + '/' + h.total + ')';
+    html += '<div class="chart-bar-group">';
+    html += '<div class="chart-bar ' + cls + '" style="height:' + barH + '%" data-tooltip="' + escapeHtml(tooltip) + '" role="img" aria-label="' + escapeHtml(label + ': ' + tooltip) + '"></div>';
+    html += '<div class="chart-bar-label">' + label + '</div>';
+    html += '</div>';
+  });
+  html += '</div></div></div>';
+
+  // === カテゴリ別弱点分析 ===
+  html += '<div class="weakness-section"><div class="chart-title">カテゴリ別正答率（全履歴合算）</div>';
+  var catTotals = { "ストラテジ系": { correct: 0, total: 0 }, "マネジメント系": { correct: 0, total: 0 }, "テクノロジ系": { correct: 0, total: 0 } };
+  history.forEach(function(h) {
+    if (!h.cats) return;
+    for (var cat in catTotals) {
+      if (h.cats[cat]) {
+        catTotals[cat].correct += h.cats[cat].correct;
+        catTotals[cat].total += h.cats[cat].total;
+      }
+    }
+  });
+
+  var catColors = { "ストラテジ系": "#e74c3c", "マネジメント系": "#f39c12", "テクノロジ系": "#27ae60" };
+  for (var cat in catTotals) {
+    var data = catTotals[cat];
+    var pct = data.total > 0 ? Math.round(data.correct / data.total * 100) : 0;
+    html += '<div class="weakness-cat">';
+    html += '<div class="weakness-label"><span class="cat-name">' + escapeHtml(cat) + '</span><span class="cat-pct" style="color:' + catColors[cat] + '">' + pct + '% <span style="font-weight:normal;color:#999;font-size:0.8rem">(' + data.correct + '/' + data.total + ')</span></span></div>';
+    html += '<div class="weakness-bar"><div class="weakness-bar-fill" style="width:' + pct + '%;background:' + catColors[cat] + '"></div></div>';
+    html += '</div>';
+  }
+  html += '</div>';
+
+  // === 苦手問題リスト ===
+  var wrongMap = {};
+  history.forEach(function(h) {
+    if (!h.wrong) return;
+    h.wrong.forEach(function(w) {
+      var key = w.exam + '-' + w.number;
+      if (!wrongMap[key]) wrongMap[key] = { exam: w.exam, examLabel: w.examLabel, number: w.number, category: w.category, count: 0 };
+      wrongMap[key].count++;
+    });
+  });
+  var wrongList = Object.values(wrongMap).sort(function(a, b) { return b.count - a.count; }).slice(0, 20);
+
+  if (wrongList.length > 0) {
+    html += '<div class="weak-questions"><div class="chart-title">よく間違える問題（上位20件）</div>';
+    wrongList.forEach(function(w) {
+      html += '<div class="wq-item"><span class="wq-label">' + escapeHtml(w.examLabel) + ' 問' + w.number + '（' + escapeHtml(w.category) + '）</span><span class="wq-count">' + w.count + '回不正解</span></div>';
+    });
+    html += '</div>';
+  }
+
+  // === 履歴クリアボタン ===
+  html += '<button class="stats-clear" onclick="clearHistory()">成績履歴をクリア</button>';
+
+  el.innerHTML = html;
+}
+
+function clearHistory() {
+  if (!confirm('成績履歴をすべて削除しますか？この操作は取り消せません。')) return;
+  localStorage.removeItem(HISTORY_KEY);
+  showStats();
 }
 
 // === キーボードショートカット ===
