@@ -191,20 +191,14 @@ h1 { text-align: center; margin: 20px 0; color: #2c3e50; font-size: 1.5rem; }
 .stats-summary { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
 .stats-summary .score-card { flex: 1; min-width: 140px; }
 
-/* スコア推移グラフ */
+/* スコア推移グラフ（SVG折れ線） */
 .chart-section { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 24px; }
 .chart-title { font-size: 0.95rem; font-weight: bold; color: #2c3e50; margin-bottom: 16px; }
-.chart-area { position: relative; height: 200px; display: flex; align-items: flex-end; gap: 0; border-bottom: 2px solid #e0e0e0; border-left: 2px solid #e0e0e0; padding-left: 2px; }
-.chart-y-labels { position: absolute; left: -32px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: space-between; font-size: 0.7rem; color: #999; }
-.chart-pass-line { position: absolute; bottom: 60%; left: 0; right: 0; border-top: 2px dashed #27ae60; z-index: 1; }
-.chart-pass-label { position: absolute; right: 4px; top: -14px; font-size: 0.65rem; color: #27ae60; background: #fff; padding: 0 4px; }
-.chart-bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; min-width: 0; }
-.chart-bar { width: 70%; max-width: 48px; border-radius: 4px 4px 0 0; transition: height 0.3s; cursor: default; position: relative; }
-.chart-bar.pass { background: #3498db; }
-.chart-bar.fail { background: #e74c3c; }
-.chart-bar-label { font-size: 0.65rem; color: #999; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; text-align: center; }
-.chart-bar:hover::after { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; white-space: nowrap; z-index: 10; }
+.chart-svg-wrap { width: 100%; overflow-x: auto; }
+.chart-svg-wrap svg { display: block; min-width: 280px; width: 100%; }
 .chart-empty { display: flex; align-items: center; justify-content: center; height: 200px; color: #999; font-size: 0.9rem; }
+/* SVGツールチップ */
+.chart-tooltip { position: fixed; background: #333; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 0.78rem; pointer-events: none; z-index: 100; white-space: nowrap; display: none; }
 
 /* カテゴリ別弱点 */
 .weakness-section { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 24px; }
@@ -218,9 +212,15 @@ h1 { text-align: center; margin: 20px 0; color: #2c3e50; font-size: 1.5rem; }
 
 /* 苦手問題リスト */
 .weak-questions { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 24px; }
-.wq-item { padding: 10px 14px; border-radius: 6px; margin-bottom: 4px; background: #fef0ee; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
-.wq-item .wq-label { color: #333; }
-.wq-item .wq-count { color: #e74c3c; font-weight: bold; font-size: 0.8rem; }
+.wq-item { padding: 10px 14px; border-radius: 6px; margin-bottom: 4px; background: #fef0ee; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.wq-item .wq-label { color: #333; flex: 1; min-width: 0; }
+.wq-item .wq-meta { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
+.wq-item .wq-pct { font-size: 0.8rem; color: #888; white-space: nowrap; }
+.wq-item .wq-count { color: #e74c3c; font-weight: bold; font-size: 0.8rem; white-space: nowrap; }
+.wq-empty { color: #27ae60; font-size: 0.9rem; padding: 8px 0; }
+.btn-weak-review { display: block; width: 100%; margin: 16px 0 0; padding: 12px; border: none; border-radius: 8px; background: #e74c3c; color: #fff; cursor: pointer; font-size: 1rem; font-weight: bold; }
+.btn-weak-review:hover { background: #c0392b; }
+.btn-weak-review:disabled { background: #ccc; cursor: default; }
 .stats-clear { display: block; margin: 20px auto 0; padding: 10px 20px; border: 1px solid #e74c3c; border-radius: 6px; background: transparent; color: #e74c3c; cursor: pointer; font-size: 0.85rem; }
 .stats-clear:hover { background: #fdecea; }
 
@@ -228,8 +228,19 @@ h1 { text-align: center; margin: 20px 0; color: #2c3e50; font-size: 1.5rem; }
 @media (max-width: 600px) {
   .stats-summary { flex-direction: column; }
   .stats-summary .score-card { min-width: unset; }
-  .chart-area { height: 160px; }
-  .chart-y-labels { left: -28px; }
+}
+
+/* === 苦手問題復習モード === */
+.weak-review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+.weak-review-header h2 { font-size: 1.1rem; color: #2c3e50; }
+.weak-review-progress { font-size: 0.85rem; color: #666; }
+.btn-weak-back { padding: 8px 16px; border: none; border-radius: 6px; background: #95a5a6; color: #fff; cursor: pointer; font-size: 0.9rem; }
+.btn-weak-back:hover { background: #7f8c8d; }
+.weak-review-done { text-align: center; padding: 40px 20px; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.weak-review-done p { color: #666; margin-bottom: 20px; font-size: 1rem; }
+@media (max-width: 600px) {
+  .weak-review-header { flex-wrap: wrap; }
+  .btn-weak-back { min-height: 44px; }
 }
 .install-banner p { flex: 1; margin: 0; color: #2c3e50; }
 .install-banner button { padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; }
@@ -319,6 +330,21 @@ h1 { text-align: center; margin: 20px 0; color: #2c3e50; font-size: 1.5rem; }
   <!-- 成績画面 -->
   <div id="statsScreen" class="hidden stats-screen"></div>
 
+  <!-- 苦手問題復習モード -->
+  <div id="weakReviewMode" class="hidden">
+    <div class="weak-review-header">
+      <h2>苦手問題復習</h2>
+      <span class="weak-review-progress" id="weakReviewProgress"></span>
+      <button class="btn-weak-back" onclick="backFromWeakReview()">成績に戻る</button>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="weakReviewProgressFill"></div></div>
+    <div id="weakReviewArea"></div>
+    <div class="nav-buttons">
+      <button onclick="weakReviewPrev()">← 前へ</button>
+      <button onclick="weakReviewNext()">次へ →</button>
+    </div>
+  </div>
+
   <!-- 進捗バックアップ / 復元 -->
   <div class="backup-section">
     <button class="btn-backup" onclick="exportBackup()" aria-label="進捗データをJSONファイルとしてダウンロード">進捗バックアップ</button>
@@ -333,7 +359,12 @@ h1 { text-align: center; margin: 20px 0; color: #2c3e50; font-size: 1.5rem; }
 <script src="data.js"></script>
 <script>
 // === 共通 ===
-let mode = "select"; // "select" | "study" | "mock" | "result"
+let mode = "select"; // "select" | "study" | "mock" | "result" | "stats" | "weakReview"
+
+// 苦手問題復習モード用状態
+let weakReviewQuestions = [];
+let weakReviewAnswers = {};
+let weakReviewIdx = 0;
 
 function showScreen(name) {
   mode = name;
@@ -342,6 +373,7 @@ function showScreen(name) {
   document.getElementById("mockMode").classList.toggle("hidden", name !== "mock");
   document.getElementById("resultScreen").classList.toggle("hidden", name !== "result");
   document.getElementById("statsScreen").classList.toggle("hidden", name !== "stats");
+  document.getElementById("weakReviewMode").classList.toggle("hidden", name !== "weakReview");
 }
 
 function backToSelect() { showScreen("select"); if (mockTimerId) { clearInterval(mockTimerId); mockTimerId = null; } }
@@ -791,26 +823,12 @@ function showStats() {
   html += '<div class="score-card"><div class="sc-label">平均 / 合格率</div><div class="sc-value">' + avg + '<span style="font-size:1rem;color:#999">%</span></div><div class="sc-detail">合格: ' + passCount + ' / ' + history.length + ' 回</div></div>';
   html += '</div>';
 
-  // === スコア推移グラフ ===
-  html += '<div class="chart-section"><div class="chart-title">スコア推移</div>';
-  // 直近15回を表示
-  var recent = history.slice(-15);
-  html += '<div style="position:relative;padding-left:36px">';
-  html += '<div class="chart-y-labels"><span>100</span><span>80</span><span>60</span><span>40</span><span>20</span><span>0</span></div>';
-  html += '<div class="chart-area">';
-  html += '<div class="chart-pass-line"><span class="chart-pass-label">合格 60%</span></div>';
-  recent.forEach(function(h) {
-    var d = new Date(h.date);
-    var label = (d.getMonth() + 1) + '/' + d.getDate();
-    var barH = h.pct; // percentage maps directly to height %
-    var cls = h.pct >= 60 ? 'pass' : 'fail';
-    var tooltip = h.pct + '% (' + h.correct + '/' + h.total + ')';
-    html += '<div class="chart-bar-group">';
-    html += '<div class="chart-bar ' + cls + '" style="height:' + barH + '%" data-tooltip="' + escapeHtml(tooltip) + '" role="img" aria-label="' + escapeHtml(label + ': ' + tooltip) + '"></div>';
-    html += '<div class="chart-bar-label">' + label + '</div>';
-    html += '</div>';
-  });
-  html += '</div></div></div>';
+  // === SVG折れ線グラフ（直近10回） ===
+  var recent = history.slice(-10);
+  html += '<div class="chart-section">';
+  html += '<div class="chart-title">成績推移グラフ（直近' + recent.length + '回）</div>';
+  html += buildLineChart(recent);
+  html += '</div>';
 
   // === カテゴリ別弱点分析 ===
   html += '<div class="weakness-section"><div class="chart-title">カテゴリ別正答率（全履歴合算）</div>';
@@ -827,39 +845,343 @@ function showStats() {
 
   var catColors = { "ストラテジ系": "#e74c3c", "マネジメント系": "#f39c12", "テクノロジ系": "#27ae60" };
   for (var cat in catTotals) {
-    var data = catTotals[cat];
-    var pct = data.total > 0 ? Math.round(data.correct / data.total * 100) : 0;
+    var d2 = catTotals[cat];
+    var pct2 = d2.total > 0 ? Math.round(d2.correct / d2.total * 100) : 0;
     html += '<div class="weakness-cat">';
-    html += '<div class="weakness-label"><span class="cat-name">' + escapeHtml(cat) + '</span><span class="cat-pct" style="color:' + catColors[cat] + '">' + pct + '% <span style="font-weight:normal;color:#999;font-size:0.8rem">(' + data.correct + '/' + data.total + ')</span></span></div>';
-    html += '<div class="weakness-bar"><div class="weakness-bar-fill" style="width:' + pct + '%;background:' + catColors[cat] + '"></div></div>';
+    html += '<div class="weakness-label"><span class="cat-name">' + escapeHtml(cat) + '</span><span class="cat-pct" style="color:' + catColors[cat] + '">' + pct2 + '% <span style="font-weight:normal;color:#999;font-size:0.8rem">(' + d2.correct + '/' + d2.total + ')</span></span></div>';
+    html += '<div class="weakness-bar"><div class="weakness-bar-fill" style="width:' + pct2 + '%;background:' + catColors[cat] + '"></div></div>';
     html += '</div>';
   }
   html += '</div>';
 
-  // === 苦手問題リスト ===
+  // === 苦手問題リスト（2回以上間違えた問題） ===
   var wrongMap = {};
   history.forEach(function(h) {
     if (!h.wrong) return;
     h.wrong.forEach(function(w) {
       var key = w.exam + '-' + w.number;
-      if (!wrongMap[key]) wrongMap[key] = { exam: w.exam, examLabel: w.examLabel, number: w.number, category: w.category, count: 0 };
+      if (!wrongMap[key]) wrongMap[key] = { exam: w.exam, examLabel: w.examLabel, number: w.number, category: w.category, count: 0, total: 0 };
       wrongMap[key].count++;
     });
   });
-  var wrongList = Object.values(wrongMap).sort(function(a, b) { return b.count - a.count; }).slice(0, 20);
+  // 各問題の出題回数（catのtotalから推定するより、historyのwrong+試験出題ベースで計算）
+  // 模試のwrongには不正解のみ記録されるため、出題回数は history.length（全模試）として正答率を計算
+  var wrongList = Object.values(wrongMap)
+    .filter(function(w) { return w.count >= 2; })  // 2回以上間違えた問題のみ
+    .sort(function(a, b) { return b.count - a.count; })
+    .slice(0, 20);
 
-  if (wrongList.length > 0) {
-    html += '<div class="weak-questions"><div class="chart-title">よく間違える問題（上位20件）</div>';
+  html += '<div class="weak-questions">';
+  html += '<div class="chart-title">苦手問題リスト（2回以上間違えた問題）</div>';
+  if (wrongList.length === 0) {
+    html += '<p class="wq-empty">2回以上間違えた問題はありません。</p>';
+  } else {
     wrongList.forEach(function(w) {
-      html += '<div class="wq-item"><span class="wq-label">' + escapeHtml(w.examLabel) + ' 問' + w.number + '（' + escapeHtml(w.category) + '）</span><span class="wq-count">' + w.count + '回不正解</span></div>';
+      // 出題回数 = historyの中でこの問題が出た模試数（wrongに含まれる＝不正解）
+      // 正答率の分母として「何回模試を受けたか」は使えないため、count/不正解数のみ表示
+      html += '<div class="wq-item">';
+      html += '<span class="wq-label">' + escapeHtml(w.examLabel) + ' 問' + w.number + '</span>';
+      html += '<span class="wq-meta">';
+      html += '<span class="category-badge ' + escapeHtml(getCardClass(w.category)) + '" style="font-size:0.7rem;padding:1px 8px;">' + escapeHtml(w.category) + '</span>';
+      html += '<span class="wq-count">' + w.count + '回不正解</span>';
+      html += '</span>';
+      html += '</div>';
     });
-    html += '</div>';
   }
+  // 苦手問題復習ボタン
+  var canReview = wrongList.some(function(w) {
+    return DATA.some(function(q) { return q.exam === w.exam && q.number === w.number && hasChoices(q); });
+  });
+  html += '<button class="btn-weak-review" onclick="startWeakReview()" ' + (canReview ? '' : 'disabled') + '>';
+  html += canReview ? '苦手問題だけ復習する' : '苦手問題がありません';
+  html += '</button>';
+  html += '</div>';
 
   // === 履歴クリアボタン ===
   html += '<button class="stats-clear" onclick="clearHistory()">成績履歴をクリア</button>';
 
   el.innerHTML = html;
+
+  // ツールチップ初期化（SVGポイントに対してイベント設定）
+  initChartTooltip();
+}
+
+/**
+ * SVG折れ線グラフを生成して返す
+ * @param {Array} recent - 直近N回の履歴配列
+ * @returns {string} SVGを含むHTML文字列
+ */
+function buildLineChart(recent) {
+  if (recent.length === 0) {
+    return '<div class="chart-empty">データがありません</div>';
+  }
+
+  // グラフ描画領域の定数
+  var SVG_W = 600;       // viewBox幅
+  var SVG_H = 260;       // viewBox高さ
+  var PAD_L = 42;        // 左余白（Y軸ラベル用）
+  var PAD_R = 16;        // 右余白
+  var PAD_T = 16;        // 上余白
+  var PAD_B = 40;        // 下余白（X軸ラベル用）
+  var PLOT_W = SVG_W - PAD_L - PAD_R;
+  var PLOT_H = SVG_H - PAD_T - PAD_B;
+
+  // 座標変換ヘルパー（Y軸: 0%=下端、100%=上端）
+  function cx(i) {
+    if (recent.length === 1) return PAD_L + PLOT_W / 2;
+    return PAD_L + (i / (recent.length - 1)) * PLOT_W;
+  }
+  function cy(pct) {
+    return PAD_T + PLOT_H * (1 - pct / 100);
+  }
+
+  var svg = '<div class="chart-svg-wrap">';
+  svg += '<svg viewBox="0 0 ' + SVG_W + ' ' + SVG_H + '" role="img" aria-label="成績推移折れ線グラフ">';
+
+  // --- Y軸補助線とラベル ---
+  var yTicks = [0, 20, 40, 60, 80, 100];
+  yTicks.forEach(function(t) {
+    var y = cy(t);
+    var isPass = (t === 60);
+    // 補助線（60%は点線・緑、それ以外は薄グレー）
+    if (isPass) {
+      svg += '<line x1="' + PAD_L + '" y1="' + y + '" x2="' + (SVG_W - PAD_R) + '" y2="' + y + '"'
+           + ' stroke="#27ae60" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.8"/>';
+      svg += '<text x="' + (SVG_W - PAD_R + 2) + '" y="' + (y + 4) + '"'
+           + ' font-size="9" fill="#27ae60" text-anchor="start">合格</text>';
+    } else {
+      svg += '<line x1="' + PAD_L + '" y1="' + y + '" x2="' + (SVG_W - PAD_R) + '" y2="' + y + '"'
+           + ' stroke="#e0e0e0" stroke-width="1"/>';
+    }
+    // Yラベル
+    svg += '<text x="' + (PAD_L - 6) + '" y="' + (y + 4) + '"'
+         + ' font-size="10" fill="#999" text-anchor="end">' + t + '%</text>';
+  });
+
+  // --- 折れ線（影） ---
+  var points = recent.map(function(h, i) { return cx(i) + ',' + cy(h.pct); }).join(' ');
+  svg += '<polyline points="' + points + '"'
+       + ' fill="none" stroke="rgba(52,152,219,0.15)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>';
+
+  // --- 折れ線（本線） ---
+  svg += '<polyline points="' + points + '"'
+       + ' fill="none" stroke="#3498db" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+
+  // --- 塗りつぶしエリア ---
+  var areaPoints = recent.map(function(h, i) { return cx(i) + ',' + cy(h.pct); }).join(' ');
+  var firstX = cx(0), lastX = cx(recent.length - 1), baseY = cy(0);
+  svg += '<polygon points="' + firstX + ',' + baseY + ' ' + areaPoints + ' ' + lastX + ',' + baseY + '"'
+       + ' fill="rgba(52,152,219,0.08)"/>';
+
+  // --- データポイントとXラベル ---
+  recent.forEach(function(h, i) {
+    var x = cx(i);
+    var y = cy(h.pct);
+    var d = new Date(h.date);
+    var xLabel = (d.getMonth() + 1) + '/' + d.getDate();
+    var isPass = h.pct >= 60;
+    var ptColor = isPass ? '#3498db' : '#e74c3c';
+    var tooltipText = '第' + (i + 1) + '回 ' + xLabel + ': ' + h.pct + '% (' + h.correct + '/' + h.total + ')';
+
+    // ポイント（外枠白、内塗り）
+    svg += '<circle cx="' + x + '" cy="' + y + '" r="6" fill="#fff" stroke="' + ptColor + '" stroke-width="2.5"'
+         + ' class="chart-pt" data-tip="' + escapeHtml(tooltipText) + '" style="cursor:default"/>';
+
+    // ポイント上の数値ラベル（%）
+    var labelY = y - 10;
+    if (labelY < PAD_T + 8) labelY = y + 18;
+    svg += '<text x="' + x + '" y="' + labelY + '"'
+         + ' font-size="10" fill="' + ptColor + '" text-anchor="middle" font-weight="bold">' + h.pct + '%</text>';
+
+    // X軸ラベル（日付 + 回数）
+    svg += '<text x="' + x + '" y="' + (SVG_H - PAD_B + 14) + '"'
+         + ' font-size="9.5" fill="#888" text-anchor="middle">' + xLabel + '</text>';
+    svg += '<text x="' + x + '" y="' + (SVG_H - PAD_B + 27) + '"'
+         + ' font-size="8.5" fill="#bbb" text-anchor="middle">第' + (i + 1) + '回</text>';
+  });
+
+  svg += '</svg></div>';
+
+  // ツールチップ要素（まだ存在しない場合のみ追加予定）
+  svg += '<div id="chartTooltip" class="chart-tooltip" role="tooltip" aria-hidden="true"></div>';
+
+  return svg;
+}
+
+/**
+ * グラフポイントへのマウスオーバーでツールチップを表示するイベントを設定する
+ */
+function initChartTooltip() {
+  var tooltip = document.getElementById('chartTooltip');
+  if (!tooltip) return;
+  var pts = document.querySelectorAll('.chart-pt');
+  pts.forEach(function(pt) {
+    pt.addEventListener('mouseenter', function(e) {
+      tooltip.textContent = pt.getAttribute('data-tip');
+      tooltip.style.display = 'block';
+      positionTooltip(e, tooltip);
+    });
+    pt.addEventListener('mousemove', function(e) {
+      positionTooltip(e, tooltip);
+    });
+    pt.addEventListener('mouseleave', function() {
+      tooltip.style.display = 'none';
+    });
+    // タッチデバイス対応
+    pt.addEventListener('touchstart', function(e) {
+      tooltip.textContent = pt.getAttribute('data-tip');
+      tooltip.style.display = 'block';
+      var touch = e.touches[0];
+      positionTooltipXY(touch.clientX, touch.clientY, tooltip);
+    }, { passive: true });
+    pt.addEventListener('touchend', function() {
+      setTimeout(function() { tooltip.style.display = 'none'; }, 1500);
+    });
+  });
+}
+
+function positionTooltip(e, tooltip) {
+  positionTooltipXY(e.clientX, e.clientY, tooltip);
+}
+
+function positionTooltipXY(cx2, cy2, tooltip) {
+  var tw = tooltip.offsetWidth;
+  var th = tooltip.offsetHeight;
+  var vw = window.innerWidth;
+  var x = cx2 + 12;
+  var y = cy2 - th - 8;
+  if (x + tw > vw - 8) x = cx2 - tw - 12;
+  if (y < 8) y = cy2 + 12;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top  = y + 'px';
+}
+
+/**
+ * 苦手問題復習モードを開始する
+ * 成績履歴から2回以上間違えた問題をdata.jsから取得して出題する
+ */
+function startWeakReview() {
+  var history = loadHistory();
+  var wrongMap = {};
+  history.forEach(function(h) {
+    if (!h.wrong) return;
+    h.wrong.forEach(function(w) {
+      var key = w.exam + '-' + w.number;
+      if (!wrongMap[key]) wrongMap[key] = { exam: w.exam, number: w.number, count: 0 };
+      wrongMap[key].count++;
+    });
+  });
+
+  // 2回以上間違えた問題をDATAから検索（選択肢ありのもののみ）
+  var weakKeys = Object.keys(wrongMap).filter(function(k) { return wrongMap[k].count >= 2; });
+  weakReviewQuestions = DATA.filter(function(q) {
+    return hasChoices(q) && weakKeys.includes(q.exam + '-' + q.number);
+  });
+
+  // 間違い回数の多い順にソート
+  weakReviewQuestions.sort(function(a, b) {
+    var ka = a.exam + '-' + a.number;
+    var kb = b.exam + '-' + b.number;
+    return (wrongMap[kb] ? wrongMap[kb].count : 0) - (wrongMap[ka] ? wrongMap[ka].count : 0);
+  });
+
+  if (weakReviewQuestions.length === 0) {
+    alert('復習できる問題が見つかりませんでした。\n（選択肢が未抽出の問題は復習できません）');
+    return;
+  }
+
+  weakReviewAnswers = {};
+  weakReviewIdx = 0;
+  showScreen("weakReview");
+  renderWeakReview();
+}
+
+/**
+ * 苦手問題復習: 問題描画
+ */
+function renderWeakReview() {
+  if (weakReviewQuestions.length === 0) return;
+  var total = weakReviewQuestions.length;
+  var q = weakReviewQuestions[weakReviewIdx];
+  var key = q.exam + '-' + q.number;
+  var ans = weakReviewAnswers[key];
+
+  document.getElementById('weakReviewProgress').textContent =
+    (weakReviewIdx + 1) + ' / ' + total + ' 問';
+  document.getElementById('weakReviewProgressFill').style.width =
+    ((weakReviewIdx + 1) / total * 100) + '%';
+
+  var html = '<div class="question-card">'
+    + '<div class="question-header">'
+    + '<span class="question-num">' + q.examLabel + ' 問' + q.number + '</span>'
+    + '<span class="category-badge ' + getCardClass(q.category) + '">' + q.category + '</span>'
+    + '</div>'
+    + '<div class="question-body">' + escapeHtml(q.body) + '</div>'
+    + (q.image ? '<div class="question-image"><img src="' + q.image + '" alt="問' + q.number + 'の図"></div>' : '')
+    + '<div class="choices">';
+
+  for (var label in q.choices) {
+    var text = q.choices[label];
+    var cls = '';
+    if (ans) {
+      if (label === q.answer) cls = ans === label ? 'correct' : 'reveal';
+      else if (label === ans) cls = 'wrong';
+    }
+    html += '<button class="choice-btn ' + cls + '" '
+          + (ans ? 'disabled ' : '')
+          + 'onclick="weakReviewChoose(\'' + key + '\',\'' + label + '\')">'
+
+          + label + '\u3000' + escapeHtml(text) + '</button>';
+  }
+  html += '</div>';
+
+  if (ans) {
+    var ok = (ans === q.answer);
+    html += '<div class="result-msg ' + (ok ? 'ok' : 'ng') + '">'
+          + (ok ? '\u2B55 正解！' : '\u274C 不正解（正解: ' + q.answer + '）')
+          + '</div>';
+  }
+  html += '</div>';
+
+  // 最後の問題で全回答済みなら完了メッセージ追加
+  var answeredCount = Object.keys(weakReviewAnswers).length;
+  if (weakReviewIdx === total - 1 && answeredCount === total) {
+    var correct = weakReviewQuestions.filter(function(qq) {
+      var k = qq.exam + '-' + qq.number;
+      return weakReviewAnswers[k] === qq.answer;
+    }).length;
+    html += '<div class="weak-review-done">'
+          + '<p>全' + total + '問完了！　正解: ' + correct + ' / ' + total + ' 問</p>'
+          + '<button class="btn-retry" onclick="startWeakReview()">もう一度</button>'
+          + '</div>';
+  }
+
+  document.getElementById('weakReviewArea').innerHTML = html;
+  window.scrollTo(0, 0);
+}
+
+function weakReviewChoose(key, label) {
+  if (weakReviewAnswers[key]) return;
+  weakReviewAnswers[key] = label;
+  renderWeakReview();
+}
+
+function weakReviewNext() {
+  if (weakReviewIdx < weakReviewQuestions.length - 1) {
+    weakReviewIdx++;
+    renderWeakReview();
+  }
+}
+
+function weakReviewPrev() {
+  if (weakReviewIdx > 0) {
+    weakReviewIdx--;
+    renderWeakReview();
+  }
+}
+
+function backFromWeakReview() {
+  showStats();
 }
 
 function clearHistory() {
