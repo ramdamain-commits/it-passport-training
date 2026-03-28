@@ -1,5 +1,15 @@
 # 更新履歴
 
+## 2026-03-28
+
+- 学習進捗を localStorage に永続化（ブラウザを閉じてもデータ保持）
+- リセット時に localStorage もクリア
+- Apple デバイス対応メタタグ追加（apple-touch-icon, apple-mobile-web-app-capable 等）
+- PWA インストール案内バナー追加（beforeinstallprompt + dismiss 機能）
+- meta description 追加（SEO対応）
+
+---
+
 ## v2.0.0 — 2026-03-20
 
 ### Web公開 & スマホ対応
