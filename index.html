@@ -199,6 +199,7 @@ h1 { text-align: center; margin: 20px 0; color: #2c3e50; font-size: 1.5rem; }
 .chart-empty { display: flex; align-items: center; justify-content: center; height: 200px; color: #999; font-size: 0.9rem; }
 /* SVGツールチップ */
 .chart-tooltip { position: fixed; background: #333; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 0.78rem; pointer-events: none; z-index: 100; white-space: nowrap; display: none; }
+.chart-pt { cursor: default; }
 
 /* カテゴリ別弱点 */
 .weakness-section { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 24px; }
@@ -297,7 +298,7 @@ h1 { text-align: center; margin: 20px 0; color: #2c3e50; font-size: 1.5rem; }
       </select>
       <button onclick="shuffle()">シャッフル</button>
       <button class="btn-reset" onclick="resetAll()">リセット</button>
-      <button class="btn-back" onclick="backToSelect()" style="background:#95a5a6;color:#fff;border:none;cursor:pointer">戻る</button>
+      <button class="btn-back" onclick="backToSelect()">戻る</button>
     </div>
     <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
     <div class="stats" id="stats"></div>
@@ -355,6 +356,7 @@ h1 { text-align: center; margin: 20px 0; color: #2c3e50; font-size: 1.5rem; }
     <p>バックアップ: 学習進捗・成績履歴をJSONで保存。復元: JSONファイルを選択すると上書きします。</p>
   </div>
 </div>
+<div id="chartTooltip" class="chart-tooltip" role="tooltip" aria-hidden="true"></div>
 
 <script src="data.js"></script>
 <script>
@@ -376,7 +378,7 @@ function showScreen(name) {
   document.getElementById("weakReviewMode").classList.toggle("hidden", name !== "weakReview");
 }
 
-function backToSelect() { showScreen("select"); if (mockTimerId) { clearInterval(mockTimerId); mockTimerId = null; } }
+function backToSelect() { showScreen("select"); clearInterval(mockTimerId); mockTimerId = null; }
 
 function getCardClass(cat) {
   if (cat.includes("ストラテジ")) return "cat-strategy";
@@ -570,9 +572,8 @@ function pickMockQuestions() {
     for (const q of pool) {
       if (picked.length >= count) break;
       const n = q.number;
-      numCount[n] = (numCount[n] || 0);
-      if (numCount[n] >= 2) continue;
-      numCount[n]++;
+      if ((numCount[n] || 0) >= 2) continue;
+      numCount[n] = (numCount[n] || 0) + 1;
       picked.push(q);
     }
     result.push(...picked);
@@ -968,9 +969,8 @@ function buildLineChart(recent) {
        + ' fill="none" stroke="#3498db" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
 
   // --- 塗りつぶしエリア ---
-  var areaPoints = recent.map(function(h, i) { return cx(i) + ',' + cy(h.pct); }).join(' ');
   var firstX = cx(0), lastX = cx(recent.length - 1), baseY = cy(0);
-  svg += '<polygon points="' + firstX + ',' + baseY + ' ' + areaPoints + ' ' + lastX + ',' + baseY + '"'
+  svg += '<polygon points="' + firstX + ',' + baseY + ' ' + points + ' ' + lastX + ',' + baseY + '"'
        + ' fill="rgba(52,152,219,0.08)"/>';
 
   // --- データポイントとXラベル ---
@@ -985,7 +985,7 @@ function buildLineChart(recent) {
 
     // ポイント（外枠白、内塗り）
     svg += '<circle cx="' + x + '" cy="' + y + '" r="6" fill="#fff" stroke="' + ptColor + '" stroke-width="2.5"'
-         + ' class="chart-pt" data-tip="' + escapeHtml(tooltipText) + '" style="cursor:default"/>';
+         + ' class="chart-pt" data-tip="' + escapeHtml(tooltipText) + '"/>';
 
     // ポイント上の数値ラベル（%）
     var labelY = y - 10;
@@ -1001,9 +1001,6 @@ function buildLineChart(recent) {
   });
 
   svg += '</svg></div>';
-
-  // ツールチップ要素（まだ存在しない場合のみ追加予定）
-  svg += '<div id="chartTooltip" class="chart-tooltip" role="tooltip" aria-hidden="true"></div>';
 
   return svg;
 }
@@ -1129,7 +1126,8 @@ function renderWeakReview() {
     }
     html += '<button class="choice-btn ' + cls + '" '
           + (ans ? 'disabled ' : '')
-          + 'onclick="weakReviewChoose(\'' + key + '\',\'' + label + '\')">'
+          + 'onclick="weakReviewChoose(\'' + key + '\',\'' + label + '\')">'
+
 
           + label + '\u3000' + escapeHtml(text) + '</button>';
   }
